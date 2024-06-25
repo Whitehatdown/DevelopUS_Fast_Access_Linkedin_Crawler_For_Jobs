@@ -1,6 +1,10 @@
 import scrapy
 from datetime import datetime, timedelta
 
+#  Commands to run the spider
+#  - scrapy crawl linkedin_jobs -a keywords="data analyst" -a location="India" -a post_timing="1 week"
+#  - scrapy crawl linkedin_jobs -a keywords="data analyst" -a location="United States" -a post_timing="1 week"
+
 class LinkedJobsSpider(scrapy.Spider):
     name = "linkedin_jobs"
     custom_settings = {
@@ -12,11 +16,11 @@ class LinkedJobsSpider(scrapy.Spider):
         }
     }
 
-    api_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={keywords}&location={location}&geoId={geoId}&trk=public_jobs_jobs-search-bar_search-submit&start='
+    api_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={keywords}&location={location}&trk=public_jobs_jobs-search-bar_search-submit&start='
 
-    def __init__(self, keywords='python', location='United States', geoId='103644278', *args, **kwargs):
+    def __init__(self, keywords='python', location='India', *args, **kwargs):
         super(LinkedJobsSpider, self).__init__(*args, **kwargs)
-        self.api_url = self.api_url.format(keywords=keywords, location=location, geoId=geoId)
+        self.api_url = self.api_url.format(keywords=keywords, location=location)
         self.run_date = datetime.now().strftime("%Y%m%d")
         self.file_number = 1
 
@@ -31,11 +35,11 @@ class LinkedJobsSpider(scrapy.Spider):
         jobs = response.css("li")
         num_jobs_returned = len(jobs)
         
+
         for job in jobs:
             job_title = job.css("h3::text").get(default='not-found').strip()
             job_detail_url = job.css(".base-card__full-link::attr(href)").get(default='not-found').strip()
             job_listed = job.css('time::text').get(default='not-found').strip()
-
             company_name = job.css('h4 a::text').get(default='not-found').strip()
             company_link = job.css('h4 a::attr(href)').get(default='not-found')
             company_location = job.css('.job-search-card__location::text').get(default='not-found').strip()
